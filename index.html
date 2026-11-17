@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测你的专属城市IP</title>
+<script src="https://aisearch-task.bj.bcebos.com/static/tailwindcss-3.4.17.js"></script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(135deg, #fef3e2 0%, #fce7d1 25%, #f9d9bf 50%, #f5c8a8 75%, #f0b694 100%);
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Songti SC', 'STSong', 'SimSun', Georgia, serif; }
+  .card-shadow { box-shadow: 0 20px 60px -15px rgba(180, 100, 50, 0.25); }
+  .option-card {
+    transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+  }
+  .option-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px -8px rgba(180, 100, 50, 0.3);
+  }
+  .option-card.selected {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+    border-color: #f97316;
+    transform: translateY(-2px);
+  }
+  .fade-in {
+    animation: fadeIn 0.5s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .progress-bar {
+    background: linear-gradient(90deg, #f97316, #fbbf24);
+    transition: width 0.5s cubic-bezier(.2,.8,.2,1);
+  }
+  .loading-dot {
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+  .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+  .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+  .result-reveal {
+    animation: reveal 0.8s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes reveal {
+    from { opacity: 0; transform: scale(0.9) translateY(30px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .tag-chip {
+    transition: all 0.2s ease;
+  }
+  .hidden-section { display: none !important; }
+  .progress-pulse {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .float-deco {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- 背景装饰 -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+  <div class="absolute top-10 left-5 w-32 h-32 rounded-full bg-orange-300/20 blur-3xl float-deco"></div>
+  <div class="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-amber-300/20 blur-3xl float-deco" style="animation-delay: -2s;"></div>
+  <div class="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-yellow-200/20 blur-2xl float-deco" style="animation-delay: -4s;"></div>
+</div>
+
+<div class="relative max-w-lg mx-auto px-5 py-8 min-h-screen flex flex-col">
+
+  <!-- ========== 欢迎页 ========== -->
+  <section id="welcome" class="flex-1 flex flex-col justify-center items-center text-center fade-in">
+    <div class="mb-6">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 mb-4 card-shadow">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+    </div>
+    <h1 class="serif text-4xl md:text-5xl font-bold text-gray-800 mb-3 leading-tight">测你的专属<br>城市IP</h1>
+    <p class="text-gray-600 text-base leading-relaxed mb-2 max-w-xs mx-auto">
+      中国那么大，哪座城市才是你的灵魂故乡？
+    </p>
+    <p class="text-gray-500 text-sm mb-8 max-w-xs mx-auto">
+      15道深度测试题，解锁你的城市人格<br>找到最适合你生活的那座城
+    </p>
+    <div class="flex gap-3 mb-8 text-xs text-gray-500">
+      <span class="bg-white/60 px-3 py-1.5 rounded-full">🔥 12种城市人格</span>
+      <span class="bg-white/60 px-3 py-1.5 rounded-full">📍 精准匹配</span>
+      <span class="bg-white/60 px-3 py-1.5 rounded-full">💡 性格解析</span>
+    </div>
+    <button onclick="startQuiz()" class="w-full max-w-xs bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold py-4 px-8 rounded-2xl card-shadow text-lg hover:from-orange-600 hover:to-amber-600 transition-all active:scale-95">
+      开始测试 →
+    </button>
+    <p class="text-gray-400 text-xs mt-6">预计耗时 2-3 分钟</p>
+  </section>
+
+  <!-- ========== 答题页 ========== -->
+  <section id="quiz" class="hidden-section flex-1 flex flex-col">
+    <!-- 进度 -->
+    <div class="flex items-center justify-between mb-6 pt-2">
+      <span class="text-gray-600 text-sm font-medium">第 <span id="currentQ">1</span> / 15 题</span>
+      <span id="progressPct" class="text-orange-600 text-sm font-semibold">7%</span>
+    </div>
+    <div class="w-full bg-white/50 rounded-full h-2 mb-8 overflow-hidden">
+      <div id="progressBar" class="progress-bar h-full rounded-full" style="width: 6.67%"></div>
+    </div>
+
+    <!-- 题目卡片 -->
+    <div class="flex-1">
+      <div id="questionCard" class="bg-white/85 backdrop-blur-sm rounded-3xl p-6 md:p-7 card-shadow fade-in" style="opacity:0;">
+        <div id="questionEmoji" class="text-4xl mb-4 text-center"></div>
+        <h2 id="questionText" class="serif text-xl md:text-2xl font-bold text-gray-800 text-center mb-6 leading-snug"></h2>
+        <div id="optionsContainer" class="space-y-3">
+          <!-- 选项由JS生成 -->
+        </div>
+      </div>
+    </div>
+
+    <button id="nextBtn" onclick="nextQuestion()" disabled class="w-full mt-6 bg-gray-300 text-white font-semibold py-3.5 px-6 rounded-2xl text-base transition-all active:scale-95 cursor-not-allowed">
+      下一题 →
+    </button>
+  </section>
+
+  <!-- ========== 加载页 ========== -->
+  <section id="loading" class="hidden-section flex-1 flex flex-col justify-center items-center text-center fade-in">
+    <div class="flex gap-3 mb-8">
+      <div class="loading-dot w-5 h-5 rounded-full bg-orange-500"></div>
+      <div class="loading-dot w-5 h-5 rounded-full bg-amber-500"></div>
+      <div class="loading-dot w-5 h-5 rounded-full bg-orange-400"></div>
+    </div>
+    <h2 class="serif text-2xl font-bold text-gray-800 mb-2">正在定位你的城市灵魂...</h2>
+    <p id="loadingText" class="text-gray-500 text-base">分析你的生活节奏偏好...</p>
+  </section>
+
+  <!-- ========== 结果页 ========== -->
+  <section id="result" class="hidden-section flex-1 flex flex-col pb-8">
+    <div class="result-reveal">
+      <div class="text-center mb-6 mt-2">
+        <p class="text-gray-500 text-sm mb-2">你的专属城市IP是</p>
+        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 mb-4 card-shadow">
+          <span id="resultEmoji" class="text-5xl">🏙️</span>
+        </div>
+        <h2 id="resultTitle" class="serif text-3xl md:text-4xl font-bold text-gray-800 mb-1">城市名称</h2>
+        <p id="resultSubtitle" class="text-orange-600 text-lg font-medium">气质类型</p>
+      </div>
+
+      <!-- 核心匹配卡 -->
+      <div class="bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl p-6 card-shadow text-white mb-5">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-white/80 text-sm">本命城市</span>
+          <span id="matchScore" class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold">匹配度 98%</span>
+        </div>
+        <h3 id="resultCity" class="serif text-4xl font-bold mb-2">成都</h3>
+        <p id="resultCityDesc" class="text-white/90 text-sm leading-relaxed">
+          一句话描述这座城市和你的契合点...
+        </p>
+      </div>
+
+      <!-- 性格解析 -->
+      <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-5 card-shadow mb-4">
+        <h3 class="font-bold text-gray-800 text-lg mb-3 flex items-center gap-2">
+          <span>🔍</span> 你的城市人格
+        </h3>
+        <p id="personalityDesc" class="text-gray-700 text-[15px] leading-relaxed">
+          性格描述...
+        </p>
+      </div>
+
+      <!-- 性格关键词 -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        <!-- 由JS生成标签 -->
+      </div>
+
+      <!-- 你适合的生活 -->
+      <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-5 card-shadow mb-4">
+        <h3 class="font-bold text-gray-800 text-lg mb-3 flex items-center gap-2">
+          <span>🏠</span> 你的理想生活状态
+        </h3>
+        <p id="lifestyleDesc" class="text-gray-700 text-[15px] leading-relaxed">
+          生活状态描述...
+        </p>
+      </div>
+
+      <!-- 其他适配城市 -->
+      <div class="bg-white/85 backdrop-blur-sm rounded-2xl p-5 card-shadow mb-5">
+        <h3 class="font-bold text-gray-800 text-lg mb-3 flex items-center gap-2">
+          <span>🗺️</span> 你也会喜欢的城市
+        </h3>
+        <div id="otherCities" class="space-y-2">
+          <!-- 由JS生成 -->
+        </div>
+      </div>
+
+      <!-- 避雷提示 -->
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+        <p class="text-amber-800 text-sm leading-relaxed">
+          <span class="font-semibold">💡 小提醒：</span><span id="tipText">避雷提示...</span>
+        </p>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="restartQuiz()" class="flex-1 bg-white/85 text-gray-700 font-semibold py-3.5 px-6 rounded-2xl card-shadow text-base hover:bg-white transition-all active:scale-95">
+          重新测试
+        </button>
+        <button onclick="shareResult()" class="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold py-3.5 px-6 rounded-2xl card-shadow text-base hover:from-orange-600 hover:to-amber-600 transition-all active:scale-95">
+          分享结果
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 分享提示弹窗 -->
+<div id="shareToast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-gray-800/90 text-white px-5 py-3 rounded-xl text-sm hidden z-50">
+  截图即可分享给好友哦 📸
+</div>
+
+<script>
+// ============ 题目数据 ============
+const questions = [
+  {
+    emoji: "🌅",
+    text: "周末早上你最想以哪种方式醒来？",
+    options: [
+      { text: "睡到自然醒，阳光晒到脸上再慢悠悠起床", scores: { chill:2, relax:2, introvert:1, romantic:1 } },
+      { text: "闹钟响起立刻起床，列好今日待办清单", scores: { ambitious:2, energetic:2, outgoing:1, practical:1 } },
+      { text: "被朋友电话喊起来，约好一起出去吃早茶", scores: { chill:1, energetic:1, outgoing:2, practical:2 } },
+      { text: "在鸟鸣和海浪声中自然醒，打开窗户就是风景", scores: { chill:2, relax:1, introvert:1, romantic:2 } }
+    ]
+  },
+  {
+    emoji: "🍜",
+    text: "今晚想吃饭，你的第一选择是？",
+    options: [
+      { text: "家楼下开了二十年的苍蝇馆子，味道最地道", scores: { chill:2, relax:1, outgoing:1, practical:2 } },
+      { text: "新开的网红餐厅，环境好出片还能发朋友圈", scores: { energetic:2, outgoing:2, romantic:1, ambitious:1 } },
+      { text: "自己在家做饭，听着音乐慢慢炖一锅汤", scores: { chill:2, relax:2, introvert:2, romantic:1 } },
+      { text: "约上三五好友去吃火锅烧烤，边吃边聊到深夜", scores: { energetic:1, outgoing:2, romantic:1, practical:1 } }
+    ]
+  },
+  {
+    emoji: "🚶",
+    text: "心情不好的时候，你会去哪里散心？",
+    options: [
+      { text: "去江边海边湖边发呆，看水看天慢慢平静", scores: { chill:2, relax:2, introvert:2, romantic:1 } },
+      { text: "去商场逛街购物买买买，消费治愈一切", scores: { energetic:2, outgoing:1, practical:2, ambitious:1 } },
+      { text: "约朋友出来喝酒吐槽，说出来就好了", scores: { outgoing:2, energetic:2, practical:1, romantic:1 } },
+      { text: "一个人钻进小巷子里乱走，偶遇惊喜小店", scores: { relax:1, introvert:2, romantic:2, chill:1 } }
+    ]
+  },
+  {
+    emoji: "💼",
+    text: "你理想中的工作节奏是？",
+    options: [
+      { text: "996拼几年攒够钱，然后提前退休去享受生活", scores: { ambitious:2, energetic:2, practical:1, outgoing:0 } },
+      { text: "朝九晚五不加班，下班后时间完全属于自己", scores: { chill:2, relax:2, introvert:1, practical:1 } },
+      { text: "自由职业/远程办公，边旅行边工作", scores: { chill:1, relax:2, romantic:2, introvert:1 } },
+      { text: "有清晰上升通道，多劳多得有成就感最重要", scores: { ambitious:2, energetic:2, outgoing:1, practical:2 } }
+    ]
+  },
+  {
+    emoji: "🏠",
+    text: "你梦想中的房子是什么样的？",
+    options: [
+      { text: "市中心高层落地窗，夜景一览无余", scores: { ambitious:2, energetic:2, outgoing:1, romantic:1 } },
+      { text: "带小院的老房子，可以种花养猫喝茶", scores: { chill:2, relax:2, introvert:2, romantic:2 } },
+      { text: "海边/山边的度假房，推开窗就是风景", scores: { chill:2, relax:1, romantic:2, introvert:1 } },
+      { text: "地铁旁交通便利的公寓，下楼就能吃遍美食", scores: { practical:2, outgoing:2, energetic:1, chill:1 } }
+    ]
+  },
+  {
+    emoji: "🌙",
+    text: "周五晚上11点，你最可能在做什么？",
+    options: [
+      { text: "已经洗完澡躺床上刷手机，准备睡觉", scores: { chill:2, relax:2, introvert:2, practical:0 } },
+      { text: "在酒吧/清吧和朋友喝两杯，聊着天南海北", scores: { outgoing:2, energetic:2, romantic:1, ambitious:0 } },
+      { text: "还在加班赶项目deadline，打工人的宿命", scores: { ambitious:2, energetic:2, practical:2, outgoing:0 } },
+      { text: "在夜市/路边摊吃宵夜，烟火气最抚人心", scores: { outgoing:2, chill:1, practical:2, relax:1 } }
+    ]
+  },
+  {
+    emoji: "👥",
+    text: "朋友聚会，你通常是哪种角色？",
+    options: [
+      { text: "气氛组组长，段子一个接一个带动全场", scores: { outgoing:2, energetic:2, romantic:1, ambitious:0 } },
+      { text: "默默坐在角落吃菜听大家聊，偶尔补一句", scores: { introvert:2, relax:2, chill:1, practical:1 } },
+      { text: "组织者，安排地点订位置通知所有人", scores: { outgoing:1, practical:2, ambitious:2, energetic:1 } },
+      { text: "看情况，有熟人就嗨没熟人就安静", scores: { introvert:1, romantic:1, chill:1, relax:1 } }
+    ]
+  },
+  {
+    emoji: "🌤️",
+    text: "难得一个大晴天，你最想？",
+    options: [
+      { text: "去公园草坪上野餐露营晒太阳", scores: { chill:2, relax:1, outgoing:1, romantic:2 } },
+      { text: "去咖啡馆坐一下午，看书工作写东西", scores: { introvert:2, romantic:2, relax:2, chill:1 } },
+      { text: "抓紧时间出门办事跑业务，不能浪费好天气", scores: { ambitious:2, energetic:2, practical:2, outgoing:0 } },
+      { text: "约朋友爬山骑行逛景点，动起来才爽", scores: { energetic:2, outgoing:2, chill:0, romantic:1 } }
+    ]
+  },
+  {
+    emoji: "💰",
+    text: "如果突然有了100万，你最想？",
+    options: [
+      { text: "付首付买套房，安稳落地最重要", scores: { practical:2, ambitious:2, chill:1, relax:1 } },
+      { text: "辞掉工作环游全国/世界，玩够了再说", scores: { chill:2, romantic:2, relax:2, introvert:0 } },
+      { text: "拿去投资理财创业，让钱生钱", scores: { ambitious:2, practical:2, energetic:2, outgoing:0 } },
+      { text: "先请朋友们大吃一顿，然后慢慢规划", scores: { outgoing:2, chill:1, romantic:1, practical:1 } }
+    ]
+  },
+  {
+    emoji: "🗣️",
+    text: "别人评价你，最常说的一个词是？",
+    options: [
+      { text: "「你好拼啊」——永远在奋斗路上", scores: { ambitious:2, energetic:2, practical:1, outgoing:0 } },
+      { text: "「你太会生活了」——懂吃懂玩懂享受", scores: { chill:2, relax:2, romantic:2, outgoing:1 } },
+      { text: "「你真的很佛」——啥都不急慢慢来", scores: { chill:2, relax:2, introvert:1, practical:1 } },
+      { text: "「你太有意思了」——有趣的灵魂本魂", scores: { outgoing:2, romantic:2, energetic:2, chill:0 } }
+    ]
+  },
+  {
+    emoji: "🌧️",
+    text: "下雨天，你最享受的状态是？",
+    options: [
+      { text: "窝在被窝里看剧睡觉，雨声是最好的白噪音", scores: { chill:2, relax:2, introvert:2, romantic:1 } },
+      { text: "撑伞去雨中散步，感受不一样的城市氛围", scores: { romantic:2, introvert:1, relax:1, chill:1 } },
+      { text: "正常上班出门，下雨不影响我的节奏", scores: { practical:2, ambitious:2, energetic:1, outgoing:0 } },
+      { text: "约朋友去吃火锅，下雨天和火锅最配", scores: { outgoing:2, chill:1, practical:2, romantic:1 } }
+    ]
+  },
+  {
+    emoji: "📱",
+    text: "手机里最多的照片类型是？",
+    options: [
+      { text: "美食探店照片，吃什么都要先拍", scores: { practical:2, outgoing:2, chill:1, romantic:1 } },
+      { text: "天空/夕阳/花草/街景，随手记录生活美好", scores: { romantic:2, introvert:2, relax:2, chill:1 } },
+      { text: "工作文档/PPT截图/会议记录，打工人实锤", scores: { ambitious:2, practical:2, energetic:2, outgoing:0 } },
+      { text: "和朋友的合照/旅行照片，回忆比什么都重要", scores: { outgoing:2, romantic:2, energetic:1, chill:1 } }
+    ]
+  },
+  {
+    emoji: "🌃",
+    text: "你对一座城市的好感，最先来源于？",
+    options: [
+      { text: "好不好吃——美食密度决定幸福指数", scores: { practical:2, chill:1, outgoing:2, relax:1 } },
+      { text: "有没有机会——发展前景和工作机会最重要", scores: { ambitious:2, practical:2, energetic:2, outgoing:0 } },
+      { text: "好不好看——风景气候建筑审美，舒服才待得住", scores: { romantic:2, chill:2, introvert:1, relax:2 } },
+      { text: "热不热情——当地人好不好相处，有没有人情味", scores: { outgoing:2, romantic:1, relax:2, chill:1 } }
+    ]
+  },
+  {
+    emoji: "🎯",
+    text: "五年后你希望自己过什么样的生活？",
+    options: [
+      { text: "事业小有成就，在大城市站稳脚跟", scores: { ambitious:2, energetic:2, practical:2, outgoing:0 } },
+      { text: "在一个舒服的小城定居，有房有猫有爱人", scores: { chill:2, relax:2, introvert:1, romantic:2 } },
+      { text: "开一家小店/做自己喜欢的事，不为钱发愁", scores: { chill:1, romantic:2, relax:1, outgoing:1 } },
+      { text: "一边赚钱一边玩，见遍世界的风景", scores: { energetic:1, romantic:2, outgoing:1, chill:1 } }
+    ]
+  },
+  {
+    emoji: "❤️",
+    text: "你最向往的爱情发生在哪里？",
+    options: [
+      { text: "校园/图书馆/咖啡馆，安静细腻日久生情", scores: { introvert:2, romantic:2, relax:2, chill:1 } },
+      { text: "旅途中一见钟情，一起看过山川湖海", scores: { romantic:2, outgoing:1, energetic:1, chill:1 } },
+      { text: "工作伙伴/同行，势均力敌并肩作战", scores: { ambitious:2, practical:2, energetic:1, outgoing:1 } },
+      { text: "从小认识/邻里街坊，烟火气里细水长流", scores: { chill:2, relax:2, practical:2, outgoing:1 } }
+    ]
+  }
+];
+
+// ============ 12种城市IP结果 ============
+const cityResults = [
+  {
+    id: "chengdu",
+    name: "蓉城慢享家",
+    city: "成都",
+    emoji: "🐼",
+    tags: ["佛系本佛", "美食雷达", "生活家", "烟火气", "巴适得板"],
+    desc: "你是天生的「蓉城慢享家」，骨子里流淌着喝茶摆龙门阵的悠闲血液。对你来说，人生不是百米冲刺而是一场慢慢逛的集市——工作要做，但火锅要吃、茶要泡、太阳要晒。你深谙「少不入蜀」的真谛，懂得在快时代里慢下来享受生活。",
+    cityDesc: "成都就是为你量身定做的灵魂故乡。这里火锅飘香、茶馆遍地、人民公园的鹤鸣茶社坐满了掏耳朵喝茶的人，加班文化在这里没有市场。在成都，你可以上午上班、下午喝茶、晚上吃火锅，把日子过成诗。",
+    lifestyle: "周末睡个懒觉，中午去楼下吃碗肥肠粉，下午约朋友在宽窄巷子找个茶馆晒太阳摆龙门阵，晚上火锅串串任选，深夜再来碗冰粉。春天去龙泉看桃花，夏天去青城山避暑，秋天去锦里逛银杏，冬天在家里煮一锅羊肉汤——这就是你的理想生活。",
+    others: [
+      { city: "广州", reason: "同样是美食天堂，早茶能从早上吃到下午" },
+      { city: "长沙", reason: "夜生活丰富，口味虾和茶颜悦色在等你" }
+    ],
+    tip: "注意不要太安逸躺平哦～偶尔也要卷一卷，毕竟火锅和奶茶都需要钱来买单！",
+    // 匹配条件：高chill+高relax+高outgoing+高practical
+    match: (s) => s.chill >= s.energetic && s.relax >= 5 && s.outgoing >= 4 && s.practical >= 5
+  },
+  {
+    id: "shanghai",
+    name: "魔都弄潮儿",
+    city: "上海",
+    emoji: "🌃",
+    tags: ["精致本精", "事业脑", "时髦精", "讲究人", "咖啡续命"],
+    desc: "你是标准的「魔都弄潮儿」，血液里流淌着咖啡因和野心。你追求品质生活，也渴望事业成就——梧桐区的Brunch要吃，陆家嘴的班也要加；武康路的照片要拍，凌晨的PPT也要改。你相信优秀的人既要会工作也要会生活。",
+    cityDesc: "上海是你的灵魂主场。这里有最顶尖的工作机会、最精致的生活方式、最多元的文化碰撞。在法租界漫步梧桐树下，在外滩看对岸灯火辉煌，在陆家嘴写字楼里挥斥方遒——这座城市配得上你的野心和品味。",
+    lifestyle: "工作日精致通勤，咖啡一杯接一杯；周末睡到自然醒，去武康路找家网红店吃Brunch，下午逛展览看话剧，晚上约朋友去外滩喝杯小酒。你相信仪式感不是矫情，是对生活的尊重。你会把出租屋布置得很有格调，哪怕是租房也要住出品质感。",
+    others: [
+      { city: "深圳", reason: "同样有大把机会，节奏更快更适合拼" },
+      { city: "杭州", reason: "互联网氛围好，西湖边喝咖啡也很惬意" }
+    ],
+    tip: "别太拼忘了享受生活哦～偶尔也停下来，梧桐区的落叶不等人。",
+    match: (s) => s.ambitious >= 7 && s.energetic >= 6 && s.outgoing >= 4 && s.practical >= 5
+  },
+  {
+    id: "sanya",
+    name: "海岛自由人",
+    city: "三亚",
+    emoji: "🌴",
+    tags: ["浪人", "自由至上", "阳光体质", "反内卷", "椰汁爱好者"],
+    desc: "你是天生的「海岛自由人」，骨子里向往无拘无束的生活。格子间和KPI对你来说是一种折磨，你真正想要的是面朝大海春暖花开——早上被海浪声叫醒，下午冲浪潜水，晚上在沙滩边喝椰子看星星。你是反内卷先锋，人生信条是「开心最重要」。",
+    cityDesc: "三亚是你的精神原乡。这里有中国最美的海、最暖的阳光、最慢的节奏。不用穿西装不用挤地铁，人字拖沙滩裤就是你的正装。在三亚，时间是用来浪费的，日落是用来发呆的，海风会吹走所有烦恼。",
+    lifestyle: "早上看日出冲浪，中午在海边吃海鲜大排档，下午躺在吊床上看书打盹，傍晚看夕阳把海面染成金色，晚上在沙滩边烧烤喝啤酒。你可以做冲浪教练、开民宿、当潜水向导，生活和工作不再对立，而是融为一体。",
+    others: [
+      { city: "大理", reason: "苍山洱海边，文艺青年的终极归宿" },
+      { city: "厦门", reason: "海风温柔节奏慢，小清新氛围拉满" }
+    ],
+    tip: "自由很好但也要注意钱包厚度～建议先攒够「躺平基金」再去追逐海浪！",
+    match: (s) => s.chill >= 7 && s.romantic >= 7 && s.relax >= 6 && s.ambitious <= 4
+  },
+  {
+    id: "beijing",
+    name: "胡同文青",
+    city: "北京",
+    emoji: "🏛️",
+    tags: ["有情怀", "理想主义", "文化人儿", "侃爷", "国潮范"],
+    desc: "你是地道的「胡同文青」，心中有火、眼里有光。你热爱文化、关心时代、有点理想主义，喜欢在胡同里找故事、在livehouse听摇滚、在咖啡馆聊人生。你可能嘴上吐槽北京的堵车和雾霾，但你心里知道这里有别处没有的东西——那种「一切皆有可能」的气场。",
+    cityDesc: "北京是你的精神主场。这里有故宫的红墙黄瓦，有798的当代艺术，有鼓楼东大街的摇滚现场，有五道营胡同的独立咖啡馆。这座城市又老又新、又土又洋、又糙又细腻，像一个充满矛盾但魅力无穷的老朋友。",
+    lifestyle: "工作日在国贸/中关村搬砖，周末钻进胡同找一家隐蔽的咖啡馆看书，傍晚去鼓楼看大爷下棋，晚上去livehouse听场演出，深夜在簋街来顿小龙虾。秋天一定要去钓鱼台看银杏，冬天一定要去什刹海滑冰，春天沙尘暴来了也要去玉渊潭看樱花。",
+    others: [
+      { city: "西安", reason: "同样底蕴深厚，十三朝古都了解一下" },
+      { city: "南京", reason: "六朝古都烟雨朦胧，文艺气息满分" }
+    ],
+    tip: "理想很丰满现实很骨感，记得在情怀和面包之间找好平衡哦～",
+    match: (s) => s.ambitious >= 5 && s.energetic >= 5 && s.outgoing >= 5 && s.romantic >= 6
+  },
+  {
+    id: "chongqing",
+    name: "江湖侠客",
+    city: "重庆",
+    emoji: "🌶️",
+    tags: ["火辣直爽", "江湖气", "8D魔幻", "火锅至上", "巴人遗风"],
+    desc: "你是快意恩仇的「江湖侠客」，性格火辣直爽不拐弯抹角，交朋友讲义气，做事情够果断。你喜欢热热闹闹的生活，喜欢有层次感的城市，喜欢那种粗糙又鲜活的烟火气——高楼大厦旁边就是老火锅馆，过江索道穿过轻轨居民楼，这种魔幻现实主义对你来说太对味了。",
+    cityDesc: "重庆就是为你这种江湖儿女准备的。这里是8D魔幻城市，导航都会迷路；这里火锅煮遍天下万物，微辣是对外地人最大的温柔；这里的人说话像吵架、吵架像说相声，直来直去不玩心眼。在重庆，你永远不会觉得无聊。",
+    lifestyle: "早上一碗小面唤醒灵魂，中午火锅晚上串串深夜烧烤，没有什么事是一顿火锅解决不了的。坐过江索道看两江交汇，去洪崖洞感受千与千寻的魔幻，在南山一棵树看夜景，到十八梯感受老重庆的味道。朋友来了管吃管住管陪玩，这就是江湖儿女的待客之道。",
+    others: [
+      { city: "长沙", reason: "同样火辣直爽，夜生活比重庆还野" },
+      { city: "武汉", reason: "江湖气息浓厚，过早文化和热干面在等你" }
+    ],
+    tip: "直爽是优点但偶尔也要顾及别人感受哦～不是所有人都能hold住你的火锅级热情！",
+    match: (s) => s.energetic >= 7 && s.outgoing >= 6 && s.chill >= 4 && s.romantic >= 5 && s.ambitious <= 6
+  },
+  {
+    id: "hangzhou",
+    name: "江南才子",
+    city: "杭州",
+    emoji: "🍵",
+    tags: ["温润如玉", "诗意栖居", "互联网人", "龙井爱好者", "西湖边的风"],
+    desc: "你是温润如玉的「江南才子/佳人」，既有文人墨客的诗意浪漫，又有互联网时代的务实进取。你喜欢西湖边的风、虎跑的泉水、龙井的茶香，也向往阿里网易的互联网氛围。你相信生活可以既有诗意也有效率，既能在西湖边散步也能在未来科技城加班。",
+    cityDesc: "杭州是你最理想的栖居地。这里有「上有天堂下有苏杭」的千年底蕴，也有数字经济第一城的现代活力。西湖边是千年不变的诗意，钱塘江畔是日新月异的未来。在杭州，你可以上午在灵隐寺烧香、下午在咖啡馆写代码，实现「诗意搬砖」的理想。",
+    lifestyle: "春天去西湖边看苏堤春晓，夏天在曲院风荷听雨打荷叶，秋天去满觉陇闻桂花香，冬天断桥残雪一定要去打卡。周末爬北高峰、逛龙井村、在梅家坞喝茶吃农家菜。下班后可以绕着西湖夜跑，也可以去未来科技城的梦想小镇和创业者们聊聊项目——这就是杭州式的平衡。",
+    others: [
+      { city: "苏州", reason: "同样江南烟雨，园林古镇比杭州更静谧" },
+      { city: "南京", reason: "梧桐大道和六朝烟雨，文艺感不输杭州" }
+    ],
+    tip: "江南好是好，梅雨季可要有心理准备哦～另外别光喝咖啡，记得多喝龙井茶养胃！",
+    match: (s) => s.chill >= 5 && s.relax >= 5 && s.introvert >= 5 && s.romantic >= 6 && s.practical >= 4
+  },
+  {
+    id: "xian",
+    name: "古都雅士",
+    city: "西安",
+    emoji: "🏯",
+    tags: ["历史控", "面食专家", "厚重底蕴", "长安情结", "摔碗酒"],
+    desc: "你是有底蕴的「古都雅士」，身上有一种穿越千年的厚重感。你喜欢有故事的地方、有历史感的东西，走在古城墙上就仿佛能听见千年以前的驼铃声。你不喜欢轻飘飘的东西，觉得有底蕴的人和城市才值得深交。你爱吃面、爱听秦腔、爱逛博物馆，骨子里有一股老陕的豪迈。",
+    cityDesc: "西安（长安）是你精神上的故乡。十三朝古都的底蕴不是吹的——兵马俑的震撼、古城墙的厚重、大雁塔的庄严、回民街的烟火，这里随便一块砖都可能有千年历史。在西安，肉夹馍凉皮冰峰三件套是标配，摔碗酒要喝、《长恨歌》要看，不夜城的灯亮起来你就是大唐人。",
+    lifestyle: "早上一碗胡辣汤配肉夹馍开启一天，中午biangbiang面油泼面轮换着来，晚上回民街从头吃到尾。春天去青龙寺看樱花，夏天在曲江池边散步，秋天古城墙下拍银杏，冬天雪落长安一定要去拍大雁塔。周末去陕博看文物、去碑林品书法、去华清池看《长恨歌》，日子过得又厚重又有滋味。",
+    others: [
+      { city: "洛阳", reason: "同样十三朝古都，龙门石窟和牡丹值得奔赴" },
+      { city: "北京", reason: "历史同样厚重，胡同里藏着数不清的故事" }
+    ],
+    tip: "历史要看但也要跟上时代哦～别光顾着怀古，肉夹馍要趁热吃，科技的车也要赶紧上！",
+    match: (s) => s.relax >= 5 && s.outgoing >= 5 && s.romantic >= 7 && s.practical >= 3 && s.energetic <= 6
+  },
+  {
+    id: "shenzhen",
+    name: "山海逐梦者",
+    city: "深圳",
+    emoji: "🚀",
+    tags: ["搞钱人", "效率至上", "年轻敢拼", "创客精神", "深圳速度"],
+    desc: "你是永不停歇的「山海逐梦者」，「搞钱」两个字刻在DNA里。你年轻、敢拼、相信奋斗改变命运，不care背景只看实力。你喜欢深圳的原因很简单——这里没有人问你来自哪里，只看你能做出什么。你可以白天在科技园写代码、晚上去深圳湾看日落，拼尽全力也不耽误热爱生活。",
+    cityDesc: "深圳是最适合追梦人的城市。这里是中国最年轻的一线城市，平均年龄32岁，到处都是和你一样敢想敢干的年轻人。腾讯华为大疆比亚迪在这里诞生，华强北可以实现所有硬件梦想，深圳湾的海风和科技园的灯火见证着每一个奋斗者的故事。来了就是深圳人，这句话不是口号。",
+    lifestyle: "工作日在科技园/福田CBD高效搬砖，下班去深圳湾公园夜跑看晚霞，周末爬梧桐山、去东西冲穿越、在大鹏半岛冲浪。你会发现这个搞钱城市居然有山有海有绿道，周末2小时就能从写字楼切换到海边。宵夜必须是潮汕牛肉火锅，喝早茶要去点都德，工作再忙也要锻炼身体——毕竟身体是搞钱的本钱。",
+    others: [
+      { city: "上海", reason: "同样是机会之都，金融和外企氛围更浓" },
+      { city: "杭州", reason: "互联网氛围同样浓厚，节奏比深圳稍慢" }
+    ],
+    tip: "搞钱重要但身体更重要～记得少熬夜多运动，深圳湾的跑道永远为你敞开！",
+    match: (s) => s.ambitious >= 8 && s.energetic >= 7 && s.practical >= 6 && s.chill <= 4
+  },
+  {
+    id: "xiamen",
+    name: "鹭岛小清新",
+    city: "厦门",
+    emoji: "🌺",
+    tags: ["文艺清新", "海风温柔", "鼓浪屿", "沙茶面", "慢节奏"],
+    desc: "你是温柔清新的「鹭岛小清新」，性格温和不激烈，喜欢有海有花有咖啡的小日子。你不需要大城市的霓虹璀璨，只想要一个能让你安安静静浪费时间的地方——在鼓浪屿的小巷子里迷路、在曾厝垵吃一碗沙茶面、在环岛路骑着单车吹海风，这种不紧不慢的小确幸就是你要的幸福。",
+    cityDesc: "厦门是为你量身定做的温柔乡。鼓浪屿的钢琴声、环岛路的海风、厦大的凤凰花、沙坡尾的文艺小店……这里没有北上广的焦虑，只有海风吹拂下的小日子。厦门的节奏刚刚好，不会快到让你喘不过气，也不会慢到让你觉得无聊，文艺和市井在这里完美融合。",
+    lifestyle: "早上一碗沙茶面或者面线糊开启一天，上午去鼓浪屿逛逛老别墅和钢琴博物馆，下午在环岛路骑单车或者找家咖啡馆看海发呆，晚上去中山路吃小吃、在曾厝垵逛文艺小店。春天厦大的凤凰花开了一定要去拍照，台风天来临前的云特别好看，冬天温暖的阳光会让北方朋友羡慕到哭。",
+    others: [
+      { city: "大理", reason: "更文艺更慵懒，适合彻底放空自己" },
+      { city: "青岛", reason: "同样有海有欧式建筑，啤酒海鲜管够" }
+    ],
+    tip: "温柔很好但也要注意别太佛系哦～小清新不能当饭吃，沙茶面和海蛎煎也需要钱买！",
+    match: (s) => s.chill >= 6 && s.relax >= 6 && s.outgoing >= 5 && s.romantic >= 6 && s.ambitious <= 4
+  },
+  {
+    id: "harbin",
+    name: "冰城热血客",
+    city: "哈尔滨",
+    emoji: "❄️",
+    tags: ["豪爽热情", "冰雪体质", "俄式风情", "东北老铁", "锅包肉"],
+    desc: "你是热情似火的「冰城热血客」，东北人的豪爽刻在DNA里——你说话直来直去、交朋友掏心掏肺、喝酒用大碗、吃饭要管够。你喜欢那种冰天雪地里热火朝天的反差感，外面零下三十度大雪纷飞，屋里暖气热得穿短袖吃冰棍，这种极致体验让你欲罢不能。",
+    cityDesc: "哈尔滨是冰雪铸成的热血之城。中央大街的俄式建筑、索菲亚大教堂的鸽子、冰雪大世界的冰雕、太阳岛的雪博会，这里有中国最极致的冬天。哈尔滨人热情到什么程度？问路能直接把你送到地方，吃饭抢着买单，喝酒不醉不归，来了都是老铁。",
+    lifestyle: "冬天去冰雪大世界看冰雕、在中央大街吃马迭尔冰棍（零下三十度吃冰棍是哈尔滨人的浪漫），春天去太阳岛看丁香花开，夏天在松花江畔乘凉喝哈尔滨啤酒，秋天去亚布力准备滑雪。锅包肉、地三鲜、铁锅炖大鹅、杀猪菜轮番安排，饭后去澡堂子搓个澡——这是东北人最顶级的享受。",
+    others: [
+      { city: "长春", reason: "同样东北豪爽，伪满皇宫和一汽值得一看" },
+      { city: "沈阳", reason: "鸡架老雪花配洗浴中心，东北快乐天花板" }
+    ],
+    tip: "豪爽是优点但喝酒要适量哦～另外南方朋友冬天去记得多穿点，零下三十度不是开玩笑的！",
+    match: (s) => s.energetic >= 6 && s.outgoing >= 7 && s.practical >= 5 && s.chill >= 4 && s.romantic <= 6
+  },
+  {
+    id: "guangzhou",
+    name: "花城生活家",
+    city: "广州",
+    emoji: "🥟",
+    tags: ["务实低调", "早茶党", "食在广州", "老广味", "煲汤高手"],
+    desc: "你是务实低调的「花城生活家」，信奉「做人最紧要开心」的人生哲学。你不喜欢花里胡哨的东西，舒服实在最重要——穿人字拖的可能是身价千万的包租公，穿背心的大爷可能刚收完十栋楼的租。你懂吃会吃，对美食有极致追求，也懂生活，把平凡日子过得有滋有味。",
+    cityDesc: "广州是最低调的一线城市，也是最懂生活的城市。这里没有上海的精致、没有北京的宏大、没有深圳的快节奏，但有最让人舒服的烟火气——早茶能从早上吃到下午，老火靓汤要煲三个小时，宵夜从晚上十点开始到凌晨三点结束。广州人务实、低调、不攀比，生活在这里你会觉得踏实。",
+    lifestyle: "周末早上约家人朋友去茶楼「饮茶」，虾饺烧卖叉烧包凤爪排骨轮番点，一边吃一边看报纸聊天，这一上午就过去了。下午去逛上下九北京路、在沙面看欧式建筑、到珠江新城看小蛮腰。晚上一定要煲汤——这是老广刻在DNA里的仪式感。宵夜去宝业路吃海鲜砂锅粥，日子过得舒服又实在。",
+    others: [
+      { city: "佛山", reason: "离广州半小时地铁，美食更多武术之乡" },
+      { city: "成都", reason: "同样懂生活爱美食，节奏比广州还慢" }
+    ],
+    tip: "低调务实是好事但也要敢于展示自己哦～另外记得提醒外地朋友：广东人真的不吃福建人！",
+    match: (s) => s.chill >= 6 && s.relax >= 6 && s.outgoing >= 5 && s.practical >= 6 && s.romantic <= 5 && s.ambitious <= 5
+  },
+  {
+    id: "suzhou",
+    name: "姑苏隐者",
+    city: "苏州",
+    emoji: "🏮",
+    tags: ["内敛细腻", "园林爱好者", "昆曲评弹", "静谧安逸", "苏式面"],
+    desc: "你是内敛细腻的「姑苏隐者」，不喜热闹偏爱安静，心中有一方属于自己的园林。你喜欢苏州这样的城市——不是没有繁华，而是繁华之中藏着静谧；不是没有故事，而是故事需要慢慢品。你不喜欢张扬，享受一个人逛园林、听评弹、吃碗头苏面的安静时光，是真正懂生活的有心人。",
+    cityDesc: "苏州是最适合安静生活的城市。拙政园、留园、狮子林，一座座园林藏着中国人最高级的审美；平江路、山塘街的青石板路走了上千年；评弹昆曲软糯婉转，听着听着心就静了。苏州离上海只有20分钟高铁，但节奏完全不同——这里的人走路都慢半拍，说话轻声细语，连风都比别处温柔。",
+    lifestyle: "早起去吃一碗头汤面（苏式面讲究头汤），上午去拙政园或者留园逛一逛感受园林之美，下午在平江路找家评弹茶馆听一曲《秦淮景》，傍晚去山塘街看夕阳下的古城。秋天一定要去天平山看红枫，春天去拙政园看玉兰，夏天在艺圃的茶室喝茶纳凉，冬天雪落园林是苏州最美的时刻。",
+    others: [
+      { city: "杭州", reason: "同样江南诗意，西湖比园林更大气" },
+      { city: "扬州", reason: "更慢更安逸，烟花三月下扬州不是空话" }
+    ],
+    tip: "独处是好事但也要记得走出去交朋友哦～园林虽美，有人一起逛才更有意思！",
+    match: (s) => s.chill >= 6 && s.relax >= 7 && s.introvert >= 7 && s.practical >= 5 && s.ambitious <= 4 && s.outgoing <= 4
+  }
+];
+
+// ============ 游戏状态 ============
+let currentQIndex = 0;
+let scores = { chill:0, ambitious:0, relax:0, energetic:0, introvert:0, outgoing:0, romantic:0, practical:0 };
+let selectedOption = -1;
+let answers = [];
+
+function startQuiz() {
+  document.getElementById('welcome').classList.add('hidden-section');
+  document.getElementById('quiz').classList.remove('hidden-section');
+  currentQIndex = 0;
+  scores = { chill:0, ambitious:0, relax:0, energetic:0, introvert:0, outgoing:0, romantic:0, practical:0 };
+  answers = [];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQIndex];
+  document.getElementById('currentQ').textContent = currentQIndex + 1;
+  const pct = Math.round(((currentQIndex + 1) / 15) * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = ((currentQIndex + 1) / 15 * 100) + '%';
+  document.getElementById('questionEmoji').textContent = q.emoji;
+  document.getElementById('questionText').textContent = q.text;
+
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  selectedOption = -1;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = true;
+  nextBtn.className = 'w-full mt-6 bg-gray-300 text-white font-semibold py-3.5 px-6 rounded-2xl text-base transition-all active:scale-95 cursor-not-allowed';
+  nextBtn.textContent = currentQIndex === 14 ? '查看结果 🎉' : '下一题 →';
+
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-card w-full text-left bg-white border-2 border-gray-100 rounded-xl p-4 text-gray-700 text-[15px] leading-relaxed hover:border-orange-200';
+    btn.textContent = opt.text;
+    btn.onclick = () => selectOption(idx, btn);
+    container.appendChild(btn);
+  });
+
+  // 重新触发入场动画
+  const card = document.getElementById('questionCard');
+  card.style.opacity = '1';
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+}
+
+function selectOption(idx, btnEl) {
+  document.querySelectorAll('.option-card').forEach(el => el.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  selectedOption = idx;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = false;
+  nextBtn.className = 'w-full mt-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold py-3.5 px-6 rounded-2xl text-base hover:from-orange-600 hover:to-amber-600 transition-all active:scale-95 card-shadow cursor-pointer';
+}
+
+function nextQuestion() {
+  if (selectedOption === -1) return;
+  const opt = questions[currentQIndex].options[selectedOption];
+  answers.push(selectedOption);
+  for (let k in opt.scores) {
+    scores[k] += opt.scores[k];
+  }
+
+  if (currentQIndex < 14) {
+    currentQIndex++;
+    renderQuestion();
+  } else {
+    showLoading();
+  }
+}
+
+function showLoading() {
+  document.getElementById('quiz').classList.add('hidden-section');
+  document.getElementById('loading').classList.remove('hidden-section');
+
+  const loadingTexts = [
+    "分析你的生活节奏偏好...",
+    "匹配你的社交能量类型...",
+    "定位你的事业野心指数...",
+    "计算你的浪漫情怀浓度...",
+    "正在连接城市灵魂信号...",
+    "找到啦！你的本命城市是..."
+  ];
+  let i = 0;
+  const textEl = document.getElementById('loadingText');
+  const interval = setInterval(() => {
+    i++;
+    if (i < loadingTexts.length) {
+      textEl.textContent = loadingTexts[i];
+    } else {
+      clearInterval(interval);
+      showResult();
+    }
+  }, 600);
+}
+
+function showResult() {
+  // 匹配最佳城市结果
+  let bestResult = cityResults[0];
+  let bestScore = -1;
+  // 先尝试精确匹配
+  for (const r of cityResults) {
+    if (r.match(scores)) {
+      bestResult = r;
+      break;
+    }
+  }
+  // 如果没有精确匹配，用加权评分
+  if (!bestResult.match(scores)) {
+    for (const r of cityResults) {
+      // 简单计算匹配度：用r的倾向方向
+      let s = 0;
+      // 基于每个result的id粗略对应，这里用一个通用评分
+      // 实际我们用维度距离来算
+      const archetype = getArchetypeScores(r.id);
+      let dist = 0;
+      for (let k in archetype) {
+        dist += Math.abs(archetype[k] - scores[k]);
+      }
+      if (bestScore === -1 || dist < bestScore) {
+        bestScore = dist;
+        bestResult = r;
+      }
+    }
+  }
+
+  document.getElementById('loading').classList.add('hidden-section');
+  document.getElementById('result').classList.remove('hidden-section');
+
+  document.getElementById('resultEmoji').textContent = bestResult.emoji;
+  document.getElementById('resultTitle').textContent = bestResult.name;
+  document.getElementById('resultSubtitle').textContent = '代表城市：' + bestResult.city;
+  document.getElementById('resultCity').textContent = bestResult.city;
+  document.getElementById('resultCityDesc').textContent = bestResult.cityDesc;
+  document.getElementById('personalityDesc').textContent = bestResult.desc;
+  document.getElementById('lifestyleDesc').textContent = bestResult.lifestyle;
+  document.getElementById('tipText').textContent = bestResult.tip;
+
+  // 匹配度
+  const matchScoreVal = 85 + Math.floor(Math.random() * 14);
+  document.getElementById('matchScore').textContent = '匹配度 ' + matchScoreVal + '%';
+
+  // 标签
+  const tagsContainer = document.querySelector('#result .flex.flex-wrap');
+  tagsContainer.innerHTML = '';
+  bestResult.tags.forEach(tag => {
+    const tagEl = document.createElement('span');
+    tagEl.className = 'tag-chip bg-orange-100 text-orange-700 px-3 py-1.5 rounded-full text-sm font-medium';
+    tagEl.textContent = '#' + tag;
+    tagsContainer.appendChild(tagEl);
+  });
+
+  // 其他适配城市
+  const otherContainer = document.getElementById('otherCities');
+  otherContainer.innerHTML = '';
+  bestResult.others.forEach((o, i) => {
+    const div = document.createElement('div');
+    div.className = 'flex items-start gap-3 p-3 bg-orange-50/60 rounded-xl';
+    div.innerHTML = `
+      <div class="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold shrink-0">${i+1}</div>
+      <div>
+        <p class="font-semibold text-gray-800 text-[15px]">${o.city}</p>
+        <p class="text-gray-600 text-sm">${o.reason}</p>
+      </div>
+    `;
+    otherContainer.appendChild(div);
+  });
+
+  // 滚动到顶部
+  window.scrollTo(0, 0);
+}
+
+function getArchetypeScores(id) {
+  // 每种类型的典型分数画像（15题满分30分维度）
+  const archetypes = {
+    chengdu:   { chill:22, ambitious:8, relax:22, energetic:10, introvert:8, outgoing:20, romantic:12, practical:22 },
+    shanghai:  { chill:6,  ambitious:26, relax:6,  energetic:24, introvert:6, outgoing:18, romantic:18, practical:22 },
+    sanya:     { chill:26, ambitious:4,  relax:24, energetic:8,  introvert:14, outgoing:14, romantic:28, practical:6  },
+    beijing:   { chill:8,  ambitious:20, relax:10, energetic:22, introvert:10, outgoing:20, romantic:24, practical:14 },
+    chongqing: { chill:16, ambitious:10, relax:10, energetic:26, introvert:6, outgoing:26, romantic:20, practical:16 },
+    hangzhou:  { chill:18, ambitious:14, relax:20, energetic:12, introvert:20, outgoing:10, romantic:22, practical:16 },
+    xian:      { chill:14, ambitious:10, relax:20, energetic:14, introvert:10, outgoing:20, romantic:28, practical:12 },
+    shenzhen:  { chill:6,  ambitious:28, relax:4,  energetic:28, introvert:8, outgoing:12, romantic:10, practical:26 },
+    xiamen:    { chill:22, ambitious:6,  relax:22, energetic:10, introvert:12, outgoing:18, romantic:24, practical:10 },
+    harbin:    { chill:14, ambitious:10, relax:10, energetic:22, introvert:4, outgoing:28, romantic:14, practical:20 },
+    guangzhou: { chill:22, ambitious:8,  relax:20, energetic:12, introvert:8, outgoing:20, romantic:10, practical:24 },
+    suzhou:    { chill:20, ambitious:6,  relax:26, energetic:6,  introvert:26, outgoing:6,  romantic:18, practical:20 }
+  };
+  return archetypes[id] || archetypes.chengdu;
+}
+
+function restartQuiz() {
+  document.getElementById('result').classList.add('hidden-section');
+  document.getElementById('welcome').classList.remove('hidden-section');
+  window.scrollTo(0, 0);
+}
+
+function shareResult() {
+  const toast = document.getElementById('shareToast');
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 2500);
+}
+</script>
+</body>
+</html>
