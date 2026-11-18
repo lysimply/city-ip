@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>测你更适合什么工作</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", STHeiti, "Microsoft Yahei", Tahoma, Simsun, sans-serif; }
+body { background: #0f172a; min-height: 100vh; color: #1e293b; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+
+/* 通用隐藏类 */
+.hidden { display: none !important; }
+
+/* 封面页 - 图片格式 (全屏海报) */
+#cover-page {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+  background: url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
+  background-size: cover;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  z-index: 10;
+}
+.cover-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.85));
+  backdrop-filter: blur(3px);
+}
+.cover-content {
+  position: relative; z-index: 11; width: 100%; max-width: 500px; padding: 30px;
+  text-align: center; color: white;
+  animation: slideUp 0.8s ease both;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.cover-icon { font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+.cover-title { font-size: 34px; font-weight: 800; line-height: 1.3; margin-bottom: 16px; text-shadow: 0 2px 10px rgba(0,0,0,0.6); letter-spacing: 1px; }
+.cover-subtitle { font-size: 16px; color: #e2e8f0; margin-bottom: 24px; line-height: 1.6; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+.cover-features { display: inline-block; text-align: left; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 15px 25px; border-radius: 16px; margin-bottom: 40px; border: 1px solid rgba(255,255,255,0.2); }
+.cover-features p { font-size: 14px; margin: 8px 0; color: #f8fafc; }
+.cover-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; 
+  padding: 18px 50px; font-size: 18px; border-radius: 50px; cursor: pointer; font-weight: 600; 
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); transition: all 0.3s; width: 80%; max-width: 300px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(102, 126, 234, 0); } 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); } }
+.cover-btn:active { transform: scale(0.96); }
+
+/* 内容卡片通用样式 */
+.container { max-width: 600px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+.card { background: #ffffff; border-radius: 24px; padding: 35px 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); margin-bottom: 20px; position: relative; }
+h2 { font-size: 22px; color: #1e293b; margin-bottom: 25px; font-weight: 700; line-height: 1.5; }
+.btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; font-size: 17px; border-radius: 50px; cursor: pointer; font-weight: 600; transition: all 0.3s; margin: 10px 5px; display: inline-block; text-align: center; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.4); }
+.btn-secondary { background: white; color: #667eea; border: 2px solid #667eea; }
+.btn-group { margin-top: 30px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+
+/* 答题页 */
+.progress-bar { height: 6px; background: #e2e8f0; border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; border-radius: 4px; }
+.question-num { font-size: 13px; color: #64748b; margin-bottom: 12px; font-weight: 600; letter-spacing: 1px; }
+.option { background: #f8fafc; border: 2px solid #e2e8f0; padding: 18px 20px; border-radius: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; font-size: 16px; line-height: 1.5; color: #334155; }
+.option:hover, .option.selected { border-color: #667eea; background: #eff6ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.1); }
+
+/* 加载页 */
+.loading-text { font-size: 18px; color: #475569; text-align: center; margin: 40px 0; line-height: 2.2; }
+.loading-text p { opacity: 0; animation: fadeIn 0.6s forwards; font-weight: 500; }
+.loading-text p:nth-child(2) { animation-delay: 0.8s; }
+.loading-text p:nth-child(3) { animation-delay: 1.6s; }
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* 结果页 */
+.result-ip { font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 15px 0; }
+.result-tag { display: inline-block; background: #eff6ff; color: #667eea; padding: 6px 14px; border-radius: 20px; font-size: 13px; margin: 4px 4px 4px 0; font-weight: 600; }
+.result-section { margin: 25px 0; text-align: left; }
+.result-section h3 { font-size: 18px; color: #1e293b; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.result-section p { font-size: 15px; color: #475569; line-height: 1.8; }
+.encouragement { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 22px; border-radius: 16px; margin: 25px 0; font-size: 16px; line-height: 1.8; font-weight: 500; text-align: left; box-shadow: 0 10px 25px rgba(245, 87, 108, 0.3); }
+.track-list { background: #f8fafc; padding: 20px; border-radius: 16px; margin: 15px 0; border: 1px solid #e2e8f0; }
+.track-item { margin: 12px 0; font-size: 15px; line-height: 1.6; color: #334155; }
+.track-item strong { color: #667eea; }
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.9); color: white; padding: 16px 32px; border-radius: 12px; font-size: 16px; z-index: 999; display: none; backdrop-filter: blur(5px); }
+
+/* 响应式适配 */
+@media (max-width: 480px) {
+  .cover-title { font-size: 28px; }
+  .card { padding: 25px 20px; }
+  .result-ip { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 封面页 (图片格式海报) -->
+<div id="cover-page">
+  <div class="cover-overlay"></div>
+  <div class="cover-content">
+    <div class="cover-icon">🧭</div>
+    <div class="cover-title">测你更适合什么工作</div>
+    <div class="cover-subtitle">30道真实场景题 · 精准匹配你的职场天赋</div>
+    <div class="cover-features">
+      <p>✨ 基于真实行为场景出题，不空洞</p>
+      <p>💡 找到你的天赋赛道，而不是别人眼中的好工作</p>
+      <p>❤️ 每种人格都有专属优势与鼓励</p>
+    </div>
+    <div>
+      <button class="cover-btn" onclick="startTest()">开始测试 →</button>
+    </div>
+    <p style="margin-top: 20px; font-size: 13px; color: #cbd5e1;">⏱️ 约需 3 分钟</p>
+  </div>
+</div>
+
+<div class="container hidden" id="main-container">
+  
+  <!-- 答题页 -->
+  <div id="quiz-page" class="card hidden">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="question-num" id="question-num"></div>
+    <h2 id="question-text"></h2>
+    <div id="options-container"></div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="prevQuestion()" id="prev-btn" style="display:none">← 上一题</button>
+    </div>
+  </div>
+
+  <!-- 加载页 -->
+  <div id="loading-page" class="card hidden">
+    <div class="loading-text">
+      <p>🔍 正在扫描你的行为模式...</p>
+      <p>🧮 正在匹配最适合你的赛道...</p>
+      <p>✨ 正在生成专属职场指南...</p>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div id="result-page" class="card hidden">
+    <p style="font-size:14px; color:#64748b; margin-bottom:10px; text-align:left;">这可能是你今年看到最懂你的测试——<br>先别划走，花30秒看完，也许能帮你少走几年弯路</p>
+    <p style="font-size:15px; color:#475569; margin-bottom:5px; text-align:left;">你的专属职业人格是</p>
+    <div class="result-ip" id="result-title"></div>
+    <p style="font-size:15px; color:#64748b; margin-bottom:20px; text-align:left;" id="result-desc"></p>
+
+    <div class="result-section">
+      <h3>💎 你的核心优势</h3>
+      <p id="result-strength"></p>
+      <div id="result-tags" style="margin-top: 12px;"></div>
+    </div>
+
+    <div class="result-section">
+      <h3>⚠️ 你最容易踩的坑</h3>
+      <p id="result-pitfall"></p>
+    </div>
+
+    <div class="encouragement" id="result-encourage"></div>
+
+    <div class="result-section">
+      <h3>🚀 给你的3条具体行动建议</h3>
+      <p id="result-advice"></p>
+    </div>
+
+    <div class="result-section">
+      <h3>🎯 最适合你的赛道</h3>
+      <div class="track-list" id="result-tracks"></div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn" onclick="shareTest()">📸 截图转发给朋友</button>
+      <button class="btn btn-secondary" onclick="restart()">🔄 再测一次</button>
+    </div>
+    <p style="text-align:center; margin-top:20px; color:#94a3b8; font-size:13px; line-height:1.6;">把结果发给最好的朋友，问问TA准不准——<br>真正了解你的人，看到结果会秒懂</p>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">截图转发就行</div>
+
+<script>
+const questions = [
+  `周一早上闹钟响了，你的第一反应是？`,
+  `周末不用上班，你大概率会怎么安排？`,
+  `接到一个完全没做过的新任务，你第一反应是？`,
+  `开会时领导突然点你发言，你会？`,
+  `工作中遇到瓶颈卡壳了，你通常会？`,
+  `deadline前一天发现任务可能完不成，你会？`,
+  `你理想中的工作节奏是？`,
+  `被领导当众批评了，你接下来会？`,
+  `你理想中的"成功"更接近下面哪种？`,
+  `和同事意见完全相反时，你会？`,
+  `朋友约你去陌生人很多的聚会，你会？`,
+  `压力特别大的时候，你通常靠什么回血？`,
+  `如果让你学一个新东西，你更喜欢哪种方式？`,
+  `你理想中的工作环境是？`,
+  `你做决定的时候，更依赖什么？`,
+  `工作里你最受不了的是？`,
+  `如果必须选一个，你更愿意做？`,
+  `平时刷手机，你看得最多的内容是？`,
+  `出去旅行，你一般会？`,
+  `朋友遇到烦心事来找你倾诉，你第一反应是？`,
+  `你的桌面/工位通常是什么样的？`,
+  `如果不用考虑钱，你最想做什么？`,
+  `团队里发生矛盾，你通常会？`,
+  `你觉得工作中最重要的是？`,
+  `别人最常夸你的点是？`,
+  `如果让你带一个新项目，你会先做什么？`,
+  `你更不喜欢哪种工作状态？`,
+  `你觉得自己最大的职场优势是？`,
+  `如果有一份工作钱少一半但你特别喜欢，你会？`,
+  `你觉得工作的意义是什么？`
+];
+
+const options = [
+  [`再赖10分钟，边吃早餐边慢慢进入状态`, `立刻弹起来，脑子里已经开始想今天要做的事`, `先刷5分钟手机找找状态，结果刷了半小时`, `闹钟响前就醒了，已经开始想今天要解决的问题`],
+  [`在家宅着，看书看剧补觉，谁叫都不想出门`, `约一两个好朋友吃饭聊天，慢慢逛`, `去参加活动/看展/探店，认识些新朋友`, `窝在家研究自己感兴趣的事，做手工/写东西/学东西`],
+  [`先自己查资料研究，搞明白大概了再动手`, `立刻找做过的人请教，快速上手最重要`, `先列个计划框架，再一步步拆解着做`, `先动手试试，边做边调整，做着做着就会了`],
+  [`有点慌，但会快速理清楚思路再开口`, `完全不慌，想到什么说什么，临场发挥就行`, `先在脑子里打个草稿，有条理地说清楚`, `能躲就躲，实在躲不了就简单说两句`],
+  [`先放一放，做点别的换换脑子，灵感自然来`, `找同事朋友聊聊，碰撞一下思路`, `死磕到底，查资料、找案例，直到搞明白`, `拆解问题，从最容易的部分开始逐个突破`],
+  [`立刻加班赶，尽最大努力先交个能看的版本`, `提前和领导说清楚情况，申请延期或者加人手`, `调整优先级，先做最核心的部分，次要的往后放`, `早就规划好了，不会出现这种情况`],
+  [`张弛有度，忙的时候专注，闲的时候能彻底放松`, `一直保持高效，每天都有新进展才踏实`, `弹性自由，不想干活的时候就能摸鱼，想干的时候效率爆表`, `按部就班，固定时间做固定事，不喜欢被打乱`],
+  [`心里有点难受，但会认真想自己哪里错了，马上改`, `当场就会解释，把自己的理由说清楚`, `表面平静，心里默默记住，下次用结果说话`, `没关系，批评就批评，我知道自己在做什么就行`],
+  [`做着自己喜欢的事，还能养活自己，每天都开心`, `在自己的领域做到顶尖，被人认可和尊重`, `有足够多的钱和时间，能自由安排自己的生活`, `带着团队做出厉害的事，大家一起成长赚钱`],
+  [`认真听对方的想法，找两个人都能接受的方案`, `摆事实讲道理，用数据和逻辑说服对方`, `只要不是原则问题，我听对方的也行，不想吵架`, `坚持自己的观点，我认为对的就会据理力争`],
+  [`不想去，去了也是角落玩手机，不如在家舒服`, `去就去，去了再说，说不定能认识有意思的人`, `如果有熟悉的朋友一起就去，不然就不去`, `挺想去的，喜欢认识不同的人，听不同的故事`],
+  [`一个人安安静静待着，谁也别理我`, `找好朋友吐槽，说出来就舒服了`, `去运动/逛街/吃好吃的，用身体的疲惫代替精神内耗`, `看点书/电影/综艺，沉浸到别人的故事里暂时逃离`],
+  [`看书/看教程系统学习，把原理搞明白再动手`, `找个会的人手把手教我，边学边做最快`, `直接上手做，遇到问题再查，做着做着就会了`, `先看别人怎么做，模仿着来，慢慢找到自己的方法`],
+  [`安静独立，每个人都专注做自己的事，不被打扰`, `开放热闹，大家随时可以交流讨论，氛围轻松`, `灵活自由，可以在家办公，不用坐班最好`, `规范专业，流程清晰，大家都按规则来`],
+  [`直觉和感受，我心里觉得对的就是对的`, `数据和事实，分析完利弊再做决定`, `过来人的经验，多听听大家的意见再选`, `自己的目标，哪个选择对长期目标有利就选哪个`],
+  [`规章制度不清晰，职责不明，互相甩锅`, `每天做重复机械的事，学不到新东西，看不到成长`, `同事关系复杂，要应付很多人情世故和办公室政治`, `想法不被重视，只能按别人说的做，没有发挥空间`],
+  [`自己独立完成的工作，对结果全权负责`, `需要和很多人沟通协调的工作，对接不同的人`, `需要创意和脑洞的工作，每天都有新挑战`, `需要细心和耐心的工作，把一件事做精做透`],
+  [`行业新闻、专业干货，想多学点东西提升自己`, `搞笑段子、娱乐八卦，就是想放松放松`, `生活方式、美食旅行，看看别人怎么生活`, `深度文章、人物故事，喜欢看不同的人生和观点`],
+  [`提前很久做攻略，每天去哪吃什么都安排好`, `说走就走，到了地方再看心情玩，走到哪算哪`, `找个舒服的酒店躺几天，主要是休息放松`, `做个大概攻略，留足自由发挥的空间`],
+  [`先听TA吐完，共情TA的感受，让TA舒服点`, `帮TA分析问题出在哪，给出具体的解决办法`, `陪TA骂两句，再带TA去吃好吃的转移注意力`, `讲自己类似的经历，让TA知道不是一个人`],
+  [`整整齐齐，东西都分类放好，找的时候一秒找到`, `看起来乱，但我自己知道什么东西在哪`, `完全乱，找东西全靠缘分，经常丢三落四`, `极简，没用的东西都扔掉，桌面只留必需品`],
+  [`到处旅行，看世界，体验不同的生活`, `做自己真正热爱的事，哪怕不赚钱也开心`, `读书学习，研究自己感兴趣的东西`, `陪陪家人朋友，过简单舒服的小日子`],
+  [`主动当和事佬，两边劝，大家和和气气最重要`, `站在理这边，谁对听谁的，客观公正`, `不关我事，我不掺和，免得引火烧身`, `分别找两边聊，找到矛盾根源再一起解决`],
+  [`开心，能做自己喜欢的事比什么都重要`, `成长，能学到东西，不断提升自己`, `稳定，不用担惊受怕，安安稳稳就好`, `收入，能赚到钱才是实实在在的`],
+  [`靠谱，交给我的事都能放心`, `聪明，什么问题都能想到办法解决`, `舒服，和我相处觉得很轻松愉快`, `有想法，总能想到别人想不到的点子`],
+  [`先搭团队，把合适的人放在合适的位置上`, `先做整体规划，把目标拆成每个人的任务`, `先自己上手做个样板，大家照着做就行`, `先开动员会，把目标和意义讲清楚，鼓舞士气`],
+  [`天天闲得没事干，混日子，看不到成长`, `天天加班，没有自己的生活，身体都熬坏了`, `天天勾心斗角，要应付很多人和事，心累`, `天天做无意义的事，不知道自己在干嘛，内耗`],
+  [`学习能力强，新东西上手快`, `沟通能力好，什么人都能聊得来`, `逻辑清晰，再乱的事都能理出头绪`, `责任心强，交给我的事一定能做好`],
+  [`立刻去，人活着不就是要做自己喜欢的事吗`, `会纠结，会先攒点钱，做好准备再去`, `不会，生活要现实一点，先赚钱再说`, `会当副业先做着，能养活自己了再全职做`],
+  [`实现自我价值，做自己觉得有意义的事`, `赚钱，给家人和自己更好的生活`, `认识更多人，看到更大的世界，体验不一样的人生`, `安身立命，有个事做，能经济独立就好`]
+];
+
+const scores = { creative: 0, execute: 0, social: 0, research: 0, lead: 0, service: 0, stable: 0, freedom: 0, detail: 0, help: 0 };
+let currentQuestion = 0;
+let answers = new Array(30).fill(-1);
+
+function startTest() {
+  document.getElementById('cover-page').classList.add('hidden');
+  document.getElementById('main-container').classList.remove('hidden');
+  document.getElementById('quiz-page').classList.remove('hidden');
+  showQuestion();
+  window.scrollTo(0, 0);
+}
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  const opts = options[currentQuestion];
+  document.getElementById('question-num').textContent = `第 ${currentQuestion+1} 题 / 共 30 题`;
+  document.getElementById('question-text').textContent = q;
+  document.getElementById('progress').style.width = `${((currentQuestion+1)/30)*100}%`;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  opts.forEach((opt, idx) => {
+    const div = document.createElement('div');
+    div.className = 'option' + (answers[currentQuestion] === idx ? ' selected' : '');
+    div.textContent = opt;
+    div.onclick = () => selectOption(idx);
+    container.appendChild(div);
+  });
+
+  document.getElementById('prev-btn').style.display = currentQuestion > 0 ? 'inline-block' : 'none';
+}
+
+function selectOption(idx) {
+  answers[currentQuestion] = idx;
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+  setTimeout(() => {
+    if (currentQuestion < 29) {
+      currentQuestion++;
+      showQuestion();
+    } else {
+      calculateResult();
+    }
+  }, 250);
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    showQuestion();
+  }
+}
+
+function calculateResult() {
+  document.getElementById('quiz-page').classList.add('hidden');
+  document.getElementById('loading-page').classList.remove('hidden');
+  window.scrollTo(0, 0);
+
+  for (let i = 0; i < 30; i++) {
+    const a = answers[i];
+    if (a === -1) continue;
+    switch(i) {
+      case 0: if(a===0)scores.stable++; if(a===1)scores.execute++; if(a===2)scores.freedom++; if(a===3)scores.lead++; break;
+      case 1: if(a===0)scores.stable++; if(a===1)scores.social++; if(a===2)scores.freedom++; if(a===3)scores.creative++; break;
+      case 2: if(a===0)scores.research++; if(a===1)scores.social++; if(a===2)scores.detail++; if(a===3)scores.execute++; break;
+      case 3: if(a===0)scores.detail++; if(a===1)scores.social++; if(a===2)scores.execute++; if(a===3)scores.stable++; break;
+      case 4: if(a===0)scores.creative++; if(a===1)scores.social++; if(a===2)scores.research++; if(a===3)scores.execute++; break;
+      case 5: if(a===0)scores.execute++; if(a===1)scores.lead++; if(a===2)scores.detail++; if(a===3)scores.stable++; break;
+      case 6: if(a===0)scores.service++; if(a===1)scores.lead++; if(a===2)scores.freedom++; if(a===3)scores.stable++; break;
+      case 7: if(a===0)scores.service++; if(a===1)scores.social++; if(a===2)scores.research++; if(a===3)scores.freedom++; break;
+      case 8: if(a===0)scores.creative++; if(a===1)scores.research++; if(a===2)scores.freedom++; if(a===3)scores.lead++; break;
+      case 9: if(a===0)scores.service++; if(a===1)scores.detail++; if(a===2)scores.stable++; if(a===3)scores.lead++; break;
+      case 10: if(a===0)scores.research++; if(a===1)scores.freedom++; if(a===2)scores.stable++; if(a===3)scores.social++; break;
+      case 11: if(a===0)scores.stable++; if(a===1)scores.help++; if(a===2)scores.freedom++; if(a===3)scores.creative++; break;
+      case 12: if(a===0)scores.research++; if(a===1)scores.social++; if(a===2)scores.execute++; if(a===3)scores.detail++; break;
+      case 13: if(a===0)scores.research++; if(a===1)scores.social++; if(a===2)scores.freedom++; if(a===3)scores.stable++; break;
+      case 14: if(a===0)scores.creative++; if(a===1)scores.detail++; if(a===2)scores.social++; if(a===3)scores.lead++; break;
+      case 15: if(a===0)scores.stable++; if(a===1)scores.creative++; if(a===2)scores.service++; if(a===3)scores.research++; break;
+      case 16: if(a===0)scores.detail++; if(a===1)scores.social++; if(a===2)scores.creative++; if(a===3)scores.execute++; break;
+      case 17: if(a===0)scores.research++; if(a===1)scores.freedom++; if(a===2)scores.service++; if(a===3)scores.creative++; break;
+      case 18: if(a===0)scores.detail++; if(a===1)scores.freedom++; if(a===2)scores.service++; if(a===3)scores.execute++; break;
+      case 19: if(a===0)scores.help++; if(a===1)scores.detail++; if(a===2)scores.social++; if(a===3)scores.service++; break;
+      case 20: if(a===0)scores.detail++; if(a===1)scores.creative++; if(a===2)scores.freedom++; if(a===3)scores.execute++; break;
+      case 21: if(a===0)scores.freedom++; if(a===1)scores.creative++; if(a===2)scores.research++; if(a===3)scores.service++; break;
+      case 22: if(a===0)scores.service++; if(a===1)scores.detail++; if(a===2)scores.stable++; if(a===3)scores.lead++; break;
+      case 23: if(a===0)scores.creative++; if(a===1)scores.execute++; if(a===2)scores.stable++; if(a===3)scores.lead++; break;
+      case 24: if(a===0)scores.service++; if(a===1)scores.research++; if(a===2)scores.social++; if(a===3)scores.creative++; break;
+      case 25: if(a===0)scores.lead++; if(a===1)scores.execute++; if(a===2)scores.detail++; if(a===3)scores.social++; break;
+      case 26: if(a===0)scores.creative++; if(a===1)scores.stable++; if(a===2)scores.service++; if(a===3)scores.help++; break;
+      case 27: if(a===0)scores.research++; if(a===1)scores.social++; if(a===2)scores.detail++; if(a===3)scores.execute++; break;
+      case 28: if(a===0)scores.freedom++; if(a===1)scores.stable++; if(a===2)scores.lead++; if(a===3)scores.creative++; break;
+      case 29: if(a===0)scores.creative++; if(a===1)scores.help++; if(a===2)scores.social++; if(a===3)scores.stable++; break;
+    }
+  }
+
+  setTimeout(() => showResult(), 2800);
+}
+
+function getResult() {
+  const entries = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  const top1 = entries[0][0];
+  const top2 = entries[1][0];
+
+  if (top1 === 'creative' && top2 === 'freedom') return 'multi';
+  if (top1 === 'creative' && (top2 === 'research' || top2 === 'detail')) return 'content';
+  if (top1 === 'creative') return 'creator';
+  if (top1 === 'detail' && top2 === 'research') return 'analyst';
+  if (top1 === 'detail' || (top1 === 'execute' && top2 === 'detail')) return 'tech';
+  if (top1 === 'social' && top2 === 'help') return 'healer';
+  if (top1 === 'social' && top2 === 'lead') return 'manager';
+  if (top1 === 'social') return 'social';
+  if (top1 === 'lead') return 'manager';
+  if (top1 === 'service' || top1 === 'help') return 'operator';
+  if (top1 === 'research') return 'researcher';
+  if (top1 === 'stable') return 'professional';
+  if (top1 === 'freedom' && scores.social < 5) return 'multi';
+  if (top1 === 'freedom') return 'aesthetic';
+  return 'operator';
+}
+
+function showResult() {
+  const type = getResult();
+  const results = {
+    creator: {
+      name: '🎨 灵感造梦者', desc: '创意型人格 · 你的脑洞就是你吃饭的家伙',
+      strength: '你天生擅长从没人注意的地方发现灵感，能把看似不相关的东西联系到一起，创造出别人想不到的东西。你讨厌重复和刻板，喜欢新鲜和变化，对美和有趣有天生的敏感度。别人觉得"不可能"的事，在你脑子里永远有新解法。',
+      tags: ['脑洞大', '审美在线', '不按套路出牌', '有趣'],
+      pitfall: '别因为别人说你"不切实际"就怀疑自己——这个世界绝大多数的好东西，最开始都只是某个人脑子里的一个"不切实际"的想法。但也要记得，光有灵感不够，学会把想法落地才是真本事。',
+      encourage: '不要为了"稳定"去做一份让你灵感枯竭的工作。你的价值从来不是把重复的事做对，而是创造出这个世界原本没有的东西。',
+      advice: '1. 每天留15分钟给自己瞎想，别把所有时间都填满<br>2. 想到什么点子立刻记下来，别等"有空再说"<br>3. 不要怕想法不成熟，先做出来，再慢慢改',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>创意策划、广告文案、设计师、短视频编导、产品经理</div><div class="track-item"><strong>🚀 潜力赛道：</strong>品牌营销、内容运营、新媒体、编剧、插画师</div><div class="track-item"><strong>💡 可尝试：</strong>活动策划、用户研究、独立创作、自由职业</div>`
+    },
+    analyst: {
+      name: '📊 数据精算师', desc: '分析型人格 · 再乱的局你都能拆明白',
+      strength: '你天生擅长拆解复杂问题，用数据和逻辑看清真相，是团队里最靠谱的「明白人」。你理性、冷静、有条理，不喜欢凭感觉做决定，遇到问题先收集信息、分析利弊、再找最优解。你能从一团乱麻中理出头绪，看到别人看不到的规律和问题所在。',
+      tags: ['逻辑强', '理性冷静', '数据敏感', '条理清晰', '追求最优解'],
+      pitfall: '别因为追求"完美方案"迟迟不行动——很多事没有绝对正确的答案，先做起来比想清楚更重要。也别太苛责别人不如你理性，不是所有人都能像你一样把事情拆得明明白白。',
+      encourage: '在这个人人都想走捷径的时代，愿意花时间把事情想透、算清楚的人，反而走得最远。你的严谨不是刻板，是稀缺的能力。',
+      advice: '1. 分析问题时给自己设个时间限制，别陷入无限纠结<br>2. 试着把你的分析结论讲给外行听，能讲明白才是真懂<br>3. 偶尔也可以相信一次直觉，不是所有事都需要算清楚',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>数据分析师、商业分析、财务、咨询、风控</div><div class="track-item"><strong>🚀 潜力赛道：</strong>产品经理、战略规划、量化交易、审计、投研</div><div class="track-item"><strong>💡 可尝试：</strong>用户研究、市场调研、算法、供应链管理</div>`
+    },
+    social: {
+      name: '🎤 人群发光体', desc: '社交型人格 · 情商这种天赋书本教不会',
+      strength: '你天生就会和人打交道，能快速和陌生人熟络起来，让身边的人都觉得舒服。你敏感地察觉到别人的情绪变化，知道什么场合说什么话，再冷的场都能被你救活。你从和人的交流中获得能量，认识新朋友对你来说不是负担是乐趣。',
+      tags: ['情商高', '自来熟', '会来事', '感染力强', '朋友多'],
+      pitfall: '别为了讨好所有人委屈自己——你不需要让每个人都喜欢你，真正值得的关系不需要你刻意维系。也别因为会说话就忽略了硬实力，情商是加分项，不是全部。',
+      encourage: '很多人觉得"会社交"是油滑，但你知道这是一种天赋——你能让别人感到舒服，这本身就是非常珍贵的能力。不要因为别人说你"不够踏实"就否定自己，连接人的能力从来都不是软技能。',
+      advice: '1. 学会拒绝，不想去的局就别去，你的精力很宝贵<br>2. 深耕2-3个真正有价值的人脉圈，比认识100个泛泛之交有用<br>3. 除了和人打交道，也花时间打磨一项能安身立命的硬技能',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>销售、BD、公关、客户成功、主播/博主</div><div class="track-item"><strong>🚀 潜力赛道：</strong>人力资源、品牌公关、市场推广、活动策划、经纪人</div><div class="track-item"><strong>💡 可尝试：</strong>用户运营、社群运营、商务拓展、主持人、培训师</div>`
+    },
+    tech: {
+      name: '🔧 问题终结者', desc: '技术型人格 · 你让这个世界真正运转起来',
+      strength: '你天生擅长解决具体问题，动手能力强，喜欢把想法变成实实在在的东西。你不怕麻烦，有耐心，愿意死磕细节，遇到bug不解决就不舒服。你不喜欢说空话，更相信行动和结果，再复杂的问题到你手里都能找到解决办法。',
+      tags: ['动手能力强', '靠谱', '解决问题', '耐心细致', '实干派'],
+      pitfall: '别只顾着低头做事，也要抬头看路——方向比努力更重要。不要觉得"会来事"都是虚的，学会表达自己的成果，让别人看到你的价值，不是邀功，是对自己的劳动负责。',
+      encourage: '这个世界不缺会提想法的人，缺的是真的能把事做成的人。你踏踏实实把每一个问题解决掉的样子，比一万句漂亮话都有力量。不要因为别人升得比你快就焦虑，手艺人走到哪里都有饭吃。',
+      advice: '1. 做完一件事主动汇报结果，别等着别人来发现你的功劳<br>2. 不要只埋头解决问题，多想想这个问题为什么会出现<br>3. 定期沉淀自己的方法论，你会成长得更快',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>程序员、工程师、技术开发、运维、测试</div><div class="track-item"><strong>🚀 潜力赛道：</strong>技术支持、解决方案专家、产品技术、实施工程师、机械/电子工程师</div><div class="track-item"><strong>💡 可尝试：</strong>独立开发者、技术博主、技术咨询、创业做产品</div>`
+    },
+    healer: {
+      name: '🌱 温柔摆渡人', desc: '帮助型人格 · 你的善良是很多人的光',
+      strength: '你天生就有共情能力，能敏锐地察觉到别人的情绪和需要，发自内心地想帮助别人。你有耐心、有同理心，和你相处的人都会觉得被理解、被照顾。你从帮助别人的过程中获得巨大的满足感，看到别人因为你变好，你比谁都开心。',
+      tags: ['同理心强', '温柔耐心', '善良', '会照顾人', '情绪价值'],
+      pitfall: '别因为不好意思拒绝别人就把自己耗干——帮助别人的前提是先照顾好自己。你的善良很珍贵，要给值得的人，不要变成别人眼里"好说话""什么忙都能帮"的老好人。',
+      encourage: '在这个人人都想赢的世界里，愿意停下来帮别人一把的人，才是真正的温柔。不要觉得"做支持类工作没前途"，很多时候，是你在背后托着大家往前走。',
+      advice: '1. 建立自己的边界，不想帮的忙直接拒绝，不要有负罪感<br>2. 帮助别人之前先问一句"你需要我帮你做什么"，别自作主张<br>3. 定期给自己"充电"，照顾别人之前先照顾好自己的情绪',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>教师、医生护士、心理咨询师、社会工作者、HR</div><div class="track-item"><strong>🚀 潜力赛道：</strong>用户运营、客户成功、客服管理、护士、培训师、营养师</div><div class="track-item"><strong>💡 可尝试：</strong>公益组织、育儿嫂/月嫂、宠物医生、瑜伽/冥想老师</div>`
+    },
+    manager: {
+      name: '🚀 项目操盘手', desc: '管理型人格 · 你天生就是带队的人',
+      strength: '你天生有大局观，能快速看清一件事的关键节点，知道怎么把合适的人放在合适的位置上，带着大家把事做成。你有责任感、有决断力，遇到问题不躲，能扛事，大家跟着你会觉得踏实。你享受带着团队打胜仗的感觉，成就别人比自己做成事更让你开心。',
+      tags: ['有担当', '大局观', '会带队', '目标感强', '能扛事'],
+      pitfall: '别什么事都自己扛——学会授权，相信你的队友，你不是超人，不用一个人把所有事都做完。也别太强势，多听团队里不同的声音，最好的决策不是你一个人想出来的，是大家一起聊出来的。',
+      encourage: '很多人觉得当领导就是发号施令，但你知道真正的管理是扛责任、托底线、带着大家一起赢。这种能让一群人朝着一个方向走的能力，是书本上学不来的天赋。',
+      advice: '1. 每周留固定时间和团队1对1聊天，别只聊工作<br>2. 功劳给团队，责任自己扛，大家才会真心服你<br>3. 不要事必躬亲，学会把事情交给合适的人做',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>项目经理、团队主管、部门经理、创业、导演</div><div class="track-item"><strong>🚀 潜力赛道：</strong>产品负责人、运营负责人、销售主管、制片人、活动总控</div><div class="track-item"><strong>💡 可尝试：</strong>独立创业、社群主理人、项目操盘手、咨询顾问</div>`
+    },
+    content: {
+      name: '📝 文字炼金师', desc: '内容型人格 · 你的文字能打到人心里',
+      strength: '你对文字和情绪有天生的敏感度，能把心里的想法准确地表达出来，让看到的人产生共鸣。你喜欢观察、喜欢思考，能从日常小事里看到别人看不到的东西。你写的东西不是华丽辞藻的堆砌，是真的有感情、有温度，能打到人心里。',
+      tags: ['文笔好', '敏感细腻', '会讲故事', '共情力强', '观察入微'],
+      pitfall: '别因为"写东西赚不到钱"就放弃自己的天赋——现在这个时代，能把话说清楚、能把故事讲动人，本身就是非常值钱的能力。也别太追求完美，写出来比写得好更重要，不要一篇文章改半个月还不敢发。',
+      encourage: '不要觉得"会写东西"没什么了不起——这个世界绝大多数人连自己的想法都表达不清楚，而你能用文字打动别人，这是多么珍贵的天赋。你写下的东西，会在你看不到的地方，安慰到很多你不认识的人。',
+      advice: '1. 坚持写，不管写什么，每天写500字，手感比灵感重要<br>2. 不要怕写得烂，先完成再完美，多写多练就会越来越好<br>3. 找到你真正想写的东西，而不是什么火就写什么',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>内容编辑、文案策划、新媒体写作、编剧、记者</div><div class="track-item"><strong>🚀 潜力赛道：</strong>自媒体博主、品牌内容、小说创作、脚本编剧、公关文案</div><div class="track-item"><strong>💡 可尝试：</strong>独立撰稿人、出版写作、播客主播、内容创业</div>`
+    },
+    professional: {
+      name: '🏛️ 秩序守护者', desc: '专业型人格 · 长期主义者走得最远',
+      strength: '你踏实、靠谱、有责任心，做事情有始有终，交给你的事永远让人放心。你不喜欢投机取巧，相信一步一个脚印，愿意在一个领域深耕下去，把专业能力练到极致。你情绪稳定，不骄不躁，不管遇到什么事都能稳稳地接住。',
+      tags: ['踏实靠谱', '情绪稳定', '有责任心', '长期主义', '专业深耕'],
+      pitfall: '别因为求稳就不敢尝试新机会——稳定是好事，但太稳定就变成了原地踏步。也别觉得"会来事"的人都是走捷径，专业能力是你的基本盘，但适当展示自己、争取机会，不是投机，是对自己负责。',
+      encourage: '在这个人人都想快速成功的时代，愿意沉下心来把一件事做透的人，才是真正的赢家。你的稳不是慢，是看透了之后的清醒——你知道走得远比走得快重要得多。',
+      advice: '1. 每年学一项和专业相关的新技能，保持竞争力<br>2. 主动争取能露脸的机会，你的专业值得被更多人看到<br>3. 不要排斥变化，偶尔跳出舒适圈，你会发现自己比想象中厉害',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>医生、律师、会计师、公务员、银行、教师</div><div class="track-item"><strong>🚀 潜力赛道：</strong>架构师、资深专家、质量管理、合规风控、精算师</div><div class="track-item"><strong>💡 可尝试：</strong>专业领域创业、独立顾问、行业专家、考证转方向</div>`
+    },
+    multi: {
+      name: '🎭 多面手玩家', desc: '自由职业型 · 不设限就是你的竞争力',
+      strength: '你兴趣广泛、学东西快，什么都能聊两句，什么都愿意尝试，讨厌被束缚、被定义，不想一辈子只做一件事。你适应能力强，在什么环境里都能活下来，而且能活得不错。你不喜欢按别人给的剧本活，想自己定义自己的人生。',
+      tags: ['兴趣广泛', '学习能力强', '讨厌束缚', '适应力强', '不设限'],
+      pitfall: '别听人说你"不专注""三分钟热度"——这个时代最值钱的不是在一个点上挖一万米，是跨界整合的能力。但也要记得，把一件事做到60分很容易，做到80分才能真正赚到钱，别所有事都停留在"会一点"的阶段。',
+      encourage: '不要因为不符合别人眼里"稳定工作"的标准就焦虑。不是所有人都适合在一家公司待一辈子做一件重复的事，你的好奇心、你的适应力、你什么都敢试试的勇气，就是这个快速变化的时代里最值钱的能力。',
+      advice: '1. 先把一项技能练到能养活自己，再去发展其他爱好<br>2. 试着把不同领域的能力结合起来，跨界才是你的护城河<br>3. 不要怕换方向，每一次尝试都不是浪费，都是在积累',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>自由职业、独立开发者、自媒体、斜杠青年、创业</div><div class="track-item"><strong>🚀 潜力赛道：</strong>跨领域产品、创新项目、初创公司、跨界创作者</div><div class="track-item"><strong>💡 可尝试：</strong>数字游民、远程工作、个人IP、副业变现</div>`
+    },
+    researcher: {
+      name: '🧪 真相探索者', desc: '研究型人格 · 慢能力在快时代最珍贵',
+      strength: '你对世界有天生的好奇心，喜欢追根究底，遇到不懂的事一定要搞明白为什么。你能沉下心来坐冷板凳，为了一个问题查很多资料、花很多时间，不找到答案不罢休。你不喜欢浮于表面的东西，想看到事情背后的本质和规律。',
+      tags: ['好奇心强', '爱钻研', '深度思考', '坐得住冷板凳', '追求本质'],
+      pitfall: '别因为研究得太深就忘了行动——知道再多道理，不做也没用。也别觉得和人打交道是浪费时间，很多问题光靠想是想不明白的，和不同的人聊聊，你会有新的发现。',
+      encourage: '在这个所有人都追求快、追求浅的时代，愿意花时间把一个问题研究透的人，才是真正能走得远的人。你对真相的执着、对深度的追求，不是书呆子气，是这个浮躁时代最珍贵的慢能力。',
+      advice: '1. 给自己的研究设个截止日期，别无限期钻牛角尖<br>2. 每周花点时间把你研究的东西讲给别人听，输出是最好的学习<br>3. 不要只待在书斋里，多去现场看看真实的世界是什么样',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>科研、学术研究、算法工程师、医药研发、分析师</div><div class="track-item"><strong>🚀 潜力赛道：</strong>行业研究、深度报道、专利律师、技术专家、智库研究员</div><div class="track-item"><strong>💡 可尝试：</strong>科普博主、专业写作、独立研究、咨询专家</div>`
+    },
+    operator: {
+      name: '🛡️ 靠谱合伙人', desc: '运营型人格 · 团队里最不能没有的人',
+      strength: '你细心、周到、有责任心，能把大大小小的事都安排得妥妥当当，考虑到别人注意不到的细节。你不一定是最出风头的那个，但一定是团队里最不能缺的那个——有你在，大家就觉得踏实，什么事都能落地。你是幕后的守护者，是真正的"定海神针"。',
+      tags: ['细心周到', '责任心强', '靠谱', '能落地', '团队定心丸'],
+      pitfall: '别因为总是做幕后工作就觉得自己不重要——一个团队里能出风头的人很多，能把事落地的人很少。也别什么杂事都往自己身上揽，学会抓重点，不要陷入琐碎的小事里忘了大方向。',
+      encourage: '很多人觉得做运营、做支持是"打杂的"，但你知道，再棒的想法没有靠谱的人落地都是空谈。你的靠谱、你的细致、你把每一件小事都做好的认真，是比任何才华都稀缺的硬通货。',
+      advice: '1. 学会向上汇报你的工作成果，别默默做事没人知道<br>2. 从琐碎的事务里抽离出来，多思考流程和体系怎么优化<br>3. 培养一项自己的核心长板，不要只做"什么都能做一点"的万金油',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>运营、用户增长、供应链、项目协调、行政管理</div><div class="track-item"><strong>🚀 潜力赛道：</strong>电商运营、内容运营、活动执行、制片人、办公室主任</div><div class="track-item"><strong>💡 可尝试：</strong>创业合伙人、个人工作室、独立操盘项目、企业管家</div>`
+    },
+    aesthetic: {
+      name: '💫 治愈能量站', desc: '生活美学家 · 你创造的美就是价值',
+      strength: '你对生活有天生的热爱，能从平凡的日常里发现美、创造美，把普通的日子过成诗。你温柔、细腻、有灵气，和你相处的人都会觉得舒服、被治愈。你不喜欢功利和竞争，更在意生活本身的质感和温度，相信活着不是为了赶路，是为了感受路。',
+      tags: ['热爱生活', '审美在线', '温柔治愈', '有灵气', '仪式感'],
+      pitfall: '别因为别人说你"不务正业""太理想主义"就放弃自己的生活方式——能把日子过好本身就是一种了不起的能力。但也要记得，理想的生活需要物质基础，先有安身立命的本事，再谈诗和远方。',
+      encourage: '不要觉得"喜欢美好"是一件没用的事。这个世界已经够卷、够焦虑了，而你能创造美、能治愈人、能让身边的人觉得生活还有盼头，这就是非常非常珍贵的价值。',
+      advice: '1. 把你的审美和对生活的热爱变成能赚钱的能力<br>2. 不要为了迎合别人改变自己的节奏，你舒服的状态就是最好的状态<br>3. 记录下你生活里的小美好，分享出来会治愈很多人',
+      tracks: `<div class="track-item"><strong>✨ 首选赛道：</strong>花艺师、咖啡师、甜品师、摄影师、家居博主</div><div class="track-item"><strong>🚀 潜力赛道：</strong>美学设计、生活方式博主、民宿主理人、芳疗师、瑜伽老师</div><div class="track-item"><strong>💡 可尝试：</strong>文创品牌、买手店、生活类自媒体、独立手作人</div>`
+    }
+  };
+
+  const r = results[type];
+  document.getElementById('result-title').textContent = r.name;
+  document.getElementById('result-desc').textContent = r.desc;
+  document.getElementById('result-strength').textContent = r.strength;
+  document.getElementById('result-tags').innerHTML = r.tags.map(t => `<span class="result-tag">${t}</span>`).join('');
+  document.getElementById('result-pitfall').textContent = r.pitfall;
+  document.getElementById('result-encourage').textContent = r.encourage;
+  document.getElementById('result-advice').innerHTML = r.advice;
+  document.getElementById('result-tracks').innerHTML = r.tracks;
+
+  document.getElementById('loading-page').classList.add('hidden');
+  document.getElementById('result-page').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+function shareTest() {
+  const toast = document.getElementById('toast');
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 2000);
+}
+
+function restart() {
+  currentQuestion = 0;
+  answers = new Array(30).fill(-1);
+  Object.keys(scores).forEach(k => scores[k] = 0);
+  document.getElementById('main-container').classList.add('hidden');
+  document.getElementById('cover-page').classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
